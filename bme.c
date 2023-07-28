@@ -1,9 +1,14 @@
+/*
+uses compensation functions from bme280 datasheet 
+https://www.mouser.com/datasheet/2/783/BST-BME280-DS002-1509607.pdf
+
+todo: get values dig_H1-dig_H6 and implement printing humidity    
+*/
+
 #include <stdio.h>
 #include <stdint.h>
-
-/*
-uses code from https://www.mouser.com/datasheet/2/783/BST-BME280-DS002-1509607.pdf
-*/
+#include <stdlib.h>
+#include <strings.h>
 
 #define dig_T1      0x6f8c
 #define dig_T2      0x6976
@@ -82,13 +87,39 @@ double bme280_compensate_H_double(BME280_S32_t adc_H)
     return var_H;
 }
 
-void main(void) {
-    BME280_S32_t adc_T = 524528;
-    BME280_S32_t adc_H = 356848;
+int main(int argc, char *argv[]) {
+
+    BME280_S32_t adc_T = 0;
+    BME280_S32_t adc_P = 0;
+
+    char *arg_error = "invalid parameters. use \"bme -t <adc_T> -p <adc_P>";
+
+    // validate input
+    if (argc != 5) {
+        printf("%s\n", arg_error);
+        return 1;
+    }
+
+    if (!strcasecmp(argv[1], "-t")) {
+        adc_T = (BME280_S32_t) strtoll(argv[2], NULL, 0);
+    } else {
+        printf("%s\n", arg_error);
+        return 1;
+    }
+
+    if (!strcasecmp(argv[3], "-p")) {
+        adc_P = (BME280_S32_t) strtoll(argv[4], NULL, 0);
+    } else {
+        printf("%s\n", arg_error);
+        return 1;
+    }
+
 
     double temp = BME280_compensate_T_double(adc_T);
-    double pres = BME280_compensate_P_double(adc_H);
+    double pres = BME280_compensate_P_double(adc_P);
 
     printf("Temperature: %f\n", temp);
     printf("Humidity: %f\n", pres);
+
+    return 0;
 }
